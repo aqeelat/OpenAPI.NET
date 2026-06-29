@@ -336,6 +336,13 @@ public class JsonSchemaReference : OpenApiReferenceWithDescription
     public IOpenApiSchema? Else { get; set; }
 
     /// <summary>
+    /// Indicates whether this reference was created from a bare $dynamicRef (no $ref).
+    /// When true, serialization emits $dynamicRef instead of $ref, and Target resolution
+    /// uses the $dynamicAnchor index rather than the $ref URI lookup.
+    /// </summary>
+    internal bool IsDynamicRefOnly { get; set; }
+
+    /// <summary>
     /// Parameterless constructor
     /// </summary>
     public JsonSchemaReference() { }
@@ -407,6 +414,36 @@ public class JsonSchemaReference : OpenApiReferenceWithDescription
         If = reference.If;
         Then = reference.Then;
         Else = reference.Else;
+        IsDynamicRefOnly = reference.IsDynamicRefOnly;
+    }
+
+    /// <inheritdoc/>
+    public override void SerializeAsV31(IOpenApiWriter writer)
+    {
+        if (IsDynamicRefOnly)
+        {
+            writer.WriteStartObject();
+            SerializeAdditionalV3XProperties(writer, (w, e) => e.SerializeAsV31(w), base.SerializeAdditionalV31Properties);
+            writer.WriteEndObject();
+        }
+        else
+        {
+            base.SerializeAsV31(writer);
+        }
+    }
+    /// <inheritdoc/>
+    public override void SerializeAsV32(IOpenApiWriter writer)
+    {
+        if (IsDynamicRefOnly)
+        {
+            writer.WriteStartObject();
+            SerializeAdditionalV3XProperties(writer, (w, e) => e.SerializeAsV32(w), base.SerializeAdditionalV32Properties);
+            writer.WriteEndObject();
+        }
+        else
+        {
+            base.SerializeAsV32(writer);
+        }
     }
 
     /// <inheritdoc/>
@@ -419,6 +456,7 @@ public class JsonSchemaReference : OpenApiReferenceWithDescription
     {
         SerializeAdditionalV3XProperties(writer, (w, e) => e.SerializeAsV32(w), base.SerializeAdditionalV32Properties);
     }
+
     private void SerializeAdditionalV3XProperties(IOpenApiWriter writer, Action<IOpenApiWriter, IOpenApiSerializable> serializeCallback, Action<IOpenApiWriter> baseSerializer)
     {
         if (Type != ReferenceType.Schema) throw new InvalidOperationException(

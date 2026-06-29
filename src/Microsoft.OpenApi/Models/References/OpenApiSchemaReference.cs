@@ -35,6 +35,54 @@ namespace Microsoft.OpenApi
         {
         }
 
+        /// <summary>
+        /// Resolves the target schema. When this reference was created from a bare $dynamicRef,
+        /// resolution first tries the $dynamicAnchor index, then falls back to $anchor resolution
+        /// per JSON Schema 2020-12 §8.2.3.2. For fragment-only refs (#node), resolves against the
+        /// local document. For URI refs (https://example.com#node), finds the target document in
+        /// the workspace and resolves there. The $anchor fallback only fires when there are zero
+        /// $dynamicAnchor candidates; with multiple candidates the spec requires the outermost
+        /// dynamic anchor, which cannot be computed without dynamic-scope tracking, so returns null.
+        /// </summary>
+        public override IOpenApiSchema? Target
+        {
+            get
+            {
+                if (Reference.IsDynamicRefOnly)
+                {
+                    var anchorName = Microsoft.OpenApi.Reader.JsonNodeHelper.ExtractDynamicAnchorName(Reference.DynamicRef);
+                    if (!string.IsNullOrEmpty(anchorName)
+                        && Reference.HostDocument is { } hostDocument
+                        && hostDocument.Workspace is { } workspace)
+                    {
+                        // Determine which document to resolve against
+                        OpenApiDocument? targetDoc = hostDocument;
+                        if (!Microsoft.OpenApi.Reader.JsonNodeHelper.IsFragmentOnlyDynamicRef(Reference.DynamicRef))
+                        {
+                            // URI-based ref: find the external document
+                            var docUri = Microsoft.OpenApi.Reader.JsonNodeHelper.ExtractDocumentUri(Reference.DynamicRef);
+                            if (docUri is not null)
+                                targetDoc = workspace.FindDocumentByBaseUri(docUri);
+                            else
+                                targetDoc = null;
+                        }
+
+                        if (targetDoc is not null)
+                        {
+                            var candidates = workspace.GetDynamicAnchorCandidates(targetDoc, anchorName!);
+                            if (candidates.Count == 1)
+                                return candidates[0];
+                            if (candidates.Count == 0
+                                && workspace.ResolveAnchor(targetDoc, anchorName!) is { } anchorTarget)
+                                return anchorTarget;
+                        }
+                    }
+                    return null;
+                }
+                return base.Target;
+            }
+        }
+
         /// <inheritdoc/>
         public string? Description
         {
