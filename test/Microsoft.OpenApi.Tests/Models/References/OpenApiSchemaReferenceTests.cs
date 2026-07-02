@@ -221,7 +221,7 @@ namespace Microsoft.OpenApi.Tests.Models.References
             Assert.Contains("reference", schemaReference.Required);
             Assert.DoesNotContain("target", schemaReference.Required);
 
-            // AdditionalPropertiesAllowed: false if either says false.
+            // AdditionalPropertiesAllowed is reference-first (location-sensitive, not collapsible).
             Assert.False(schemaReference.AdditionalPropertiesAllowed);
 
             // ContentEncoding is an annotation — sibling value takes precedence.
@@ -990,8 +990,10 @@ namespace Microsoft.OpenApi.Tests.Models.References
         }
 
         [Fact]
-        public void AdditionalPropertiesAllowedFalseIfEitherFalse()
+        public void AdditionalPropertiesAllowedIsReferenceFirst()
         {
+            // additionalProperties is location-sensitive and cannot be safely collapsed
+            // into a single effective boolean. Keep reference-first convenience behavior.
             var workingDocument = new OpenApiDocument
             {
                 Components = new OpenApiComponents(),
@@ -1003,15 +1005,15 @@ namespace Microsoft.OpenApi.Tests.Models.References
             };
             workingDocument.Workspace.RegisterComponents(workingDocument);
 
-            // Target true, sibling false → false.
+            // Sibling false overrides target true (reference-first).
             var ref1 = new OpenApiSchemaReference("TargetAPA", workingDocument) { AdditionalPropertiesAllowed = false };
             Assert.False(ref1.AdditionalPropertiesAllowed);
 
-            // Target false, sibling not set → false.
+            // No sibling → target fallback.
             var ref2 = new OpenApiSchemaReference("TargetNoAPA", workingDocument);
             Assert.False(ref2.AdditionalPropertiesAllowed);
 
-            // Target true, sibling not set → true.
+            // No sibling → target fallback.
             var ref3 = new OpenApiSchemaReference("TargetAPA", workingDocument);
             Assert.True(ref3.AdditionalPropertiesAllowed);
         }

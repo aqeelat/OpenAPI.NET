@@ -175,7 +175,7 @@ namespace Microsoft.OpenApi
         /// <inheritdoc/>
         public bool AdditionalPropertiesAllowed
         {
-            get => (Target?.AdditionalPropertiesAllowed ?? true) && (Reference.AdditionalPropertiesAllowed ?? true);
+            get => Reference.AdditionalPropertiesAllowed ?? Target?.AdditionalPropertiesAllowed ?? true;
             set => Reference.AdditionalPropertiesAllowed = value;
         }
         /// <inheritdoc/>
@@ -195,7 +195,7 @@ namespace Microsoft.OpenApi
         /// <inheritdoc/>
         public bool UnevaluatedProperties
         {
-            get => (Target?.UnevaluatedProperties ?? true) && (Reference.UnevaluatedProperties ?? true);
+            get => Reference.UnevaluatedProperties ?? Target?.UnevaluatedProperties ?? true;
             set => Reference.UnevaluatedProperties = value;
         }
         /// <inheritdoc/>
