@@ -79,9 +79,21 @@ namespace Microsoft.OpenApi
         /// <inheritdoc/>
         public string? Minimum { get => string.IsNullOrEmpty(Reference.Minimum) ? Target?.Minimum : Reference.Minimum; set => Reference.Minimum = value; }
         /// <inheritdoc/>
-        public int? MaxLength { get => Reference.MaxLength ?? Target?.MaxLength; set => Reference.MaxLength = value; }
+        public int? MaxLength
+        {
+            get => Target?.MaxLength is { } tMax && Reference.MaxLength is { } rMax
+                ? Math.Min(tMax, rMax)
+                : Target?.MaxLength ?? Reference.MaxLength;
+            set => Reference.MaxLength = value;
+        }
         /// <inheritdoc/>
-        public int? MinLength { get => Reference.MinLength ?? Target?.MinLength; set => Reference.MinLength = value; }
+        public int? MinLength
+        {
+            get => Target?.MinLength is { } tMin && Reference.MinLength is { } rMin
+                ? Math.Max(tMin, rMin)
+                : Target?.MinLength ?? Reference.MinLength;
+            set => Reference.MinLength = value;
+        }
         /// <inheritdoc/>
         public string? Pattern { get => string.IsNullOrEmpty(Reference.Pattern) ? Target?.Pattern : Reference.Pattern; set => Reference.Pattern = value; }
         /// <inheritdoc/>
@@ -95,13 +107,13 @@ namespace Microsoft.OpenApi
         /// <inheritdoc/>
         public bool ReadOnly
         {
-            get => Reference.ReadOnly ?? Target?.ReadOnly ?? false;
+            get => Reference.ReadOnly == true || Target?.ReadOnly == true;
             set => Reference.ReadOnly = value;
         }
         /// <inheritdoc/>
         public bool WriteOnly
         {
-            get => Reference.WriteOnly ?? Target?.WriteOnly ?? false;
+            get => Reference.WriteOnly == true || Target?.WriteOnly == true;
             set => Reference.WriteOnly = value;
         }
         /// <inheritdoc/>
@@ -117,9 +129,21 @@ namespace Microsoft.OpenApi
         /// <inheritdoc/>
         public IOpenApiSchema? Items { get => Reference.Items ?? Target?.Items; set => Reference.Items = value; }
         /// <inheritdoc/>
-        public int? MaxItems { get => Reference.MaxItems ?? Target?.MaxItems; set => Reference.MaxItems = value; }
+        public int? MaxItems
+        {
+            get => Target?.MaxItems is { } tMax && Reference.MaxItems is { } rMax
+                ? Math.Min(tMax, rMax)
+                : Target?.MaxItems ?? Reference.MaxItems;
+            set => Reference.MaxItems = value;
+        }
         /// <inheritdoc/>
-        public int? MinItems { get => Reference.MinItems ?? Target?.MinItems; set => Reference.MinItems = value; }
+        public int? MinItems
+        {
+            get => Target?.MinItems is { } tMin && Reference.MinItems is { } rMin
+                ? Math.Max(tMin, rMin)
+                : Target?.MinItems ?? Reference.MinItems;
+            set => Reference.MinItems = value;
+        }
         /// <inheritdoc/>
         public bool? UniqueItems { get => Reference.UniqueItems ?? Target?.UniqueItems; set => Reference.UniqueItems = value; }
         /// <inheritdoc/>
@@ -133,11 +157,27 @@ namespace Microsoft.OpenApi
         /// <inheritdoc/>
         public IDictionary<string, IOpenApiSchema>? PatternProperties { get => Reference.PatternProperties ?? Target?.PatternProperties; set => Reference.PatternProperties = value; }
         /// <inheritdoc/>
-        public int? MaxProperties { get => Reference.MaxProperties ?? Target?.MaxProperties; set => Reference.MaxProperties = value; }
+        public int? MaxProperties
+        {
+            get => Target?.MaxProperties is { } tMax && Reference.MaxProperties is { } rMax
+                ? Math.Min(tMax, rMax)
+                : Target?.MaxProperties ?? Reference.MaxProperties;
+            set => Reference.MaxProperties = value;
+        }
         /// <inheritdoc/>
-        public int? MinProperties { get => Reference.MinProperties ?? Target?.MinProperties; set => Reference.MinProperties = value; }
+        public int? MinProperties
+        {
+            get => Target?.MinProperties is { } tMin && Reference.MinProperties is { } rMin
+                ? Math.Max(tMin, rMin)
+                : Target?.MinProperties ?? Reference.MinProperties;
+            set => Reference.MinProperties = value;
+        }
         /// <inheritdoc/>
-        public bool AdditionalPropertiesAllowed { get => Reference.AdditionalPropertiesAllowed ?? Target?.AdditionalPropertiesAllowed ?? true; set => Reference.AdditionalPropertiesAllowed = value; }
+        public bool AdditionalPropertiesAllowed
+        {
+            get => (Target?.AdditionalPropertiesAllowed ?? true) && (Reference.AdditionalPropertiesAllowed ?? true);
+            set => Reference.AdditionalPropertiesAllowed = value;
+        }
         /// <inheritdoc/>
         public IOpenApiSchema? AdditionalProperties { get => Reference.AdditionalProperties ?? Target?.AdditionalProperties; set => Reference.AdditionalProperties = value; }
         /// <inheritdoc/>
@@ -153,7 +193,11 @@ namespace Microsoft.OpenApi
         /// <inheritdoc/>
         public IList<JsonNode>? Enum { get => Reference.Enum ?? Target?.Enum; set => Reference.Enum = value; }
         /// <inheritdoc/>
-        public bool UnevaluatedProperties { get => Reference.UnevaluatedProperties ?? Target?.UnevaluatedProperties ?? true; set => Reference.UnevaluatedProperties = value; }
+        public bool UnevaluatedProperties
+        {
+            get => (Target?.UnevaluatedProperties ?? true) && (Reference.UnevaluatedProperties ?? true);
+            set => Reference.UnevaluatedProperties = value;
+        }
         /// <inheritdoc/>
         public IOpenApiSchema? UnevaluatedPropertiesSchema { get => Reference.UnevaluatedPropertiesSchema ?? (Target as IOpenApiSchemaMissingProperties)?.UnevaluatedPropertiesSchema; set => Reference.UnevaluatedPropertiesSchema = value; }
         /// <inheritdoc/>
